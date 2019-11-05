@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8 />
+        <title>Order</title>
+
+        {% load static %}
+        <script src="{% static 'pos/js/jquery-3.2.1.min.js' %}">
+        </script>
+
+        <link rel="stylesheet" href="{% static 'pos/css/bootstrap.min.css' %}">
+
+        <script src="{% static 'pos/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'pos/js/vue.min.js' %}"></script>
+
+        <link rel="apple-touch-icon" sizes="57x57" href="{% static 'pos/img/apple-touch-icon-57x57.png' %}">
+        <link rel="apple-touch-icon" sizes="60x60" href="{% static 'pos/img/apple-touch-icon-60x60.png' %}">
+        <link rel="apple-touch-icon" sizes="72x72" href="{% static 'pos/img/apple-touch-icon-72x72.png' %}">
+        <link rel="apple-touch-icon" sizes="76x76" href="{% static 'pos/img/apple-touch-icon-76x76.png' %}">
+        <link rel="apple-touch-icon" sizes="114x114" href="{% static 'pos/img/apple-touch-icon-114x114.png' %}">
+        <link rel="apple-touch-icon" sizes="120x120" href="{% static 'pos/img/apple-touch-icon-120x120.png' %}">
+        <link rel="apple-touch-icon" sizes="144x144" href="{% static 'pos/img/apple-touch-icon-144x144.png' %}">
+        <link rel="apple-touch-icon" sizes="152x152" href="{% static 'pos/img/apple-touch-icon-152x152.png' %}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'pos/img/apple-touch-icon-180x180.png' %}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static "pos/img/favicon-32x32.png" %}" >
+        <link rel="icon" type="image/png" sizes="192x192" href="{% static "pos/img/android-chrome-192x192.png" %}" >
+        <link rel="icon" type="image/png" sizes="96x96" href="{% static "pos/img/favicon-96x96.png" %}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{% static "pos/img/favicon-16x16.png" %}">
+        <link rel="manifest" href="{% static "pos/manifest.json" %}">
+        <link rel="mask-icon" href="{% static "pos/img/safari-pinned-tab.svg" color="#5bbad5" %}">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="{% static "pos/img/mstile-144x144.png" %}">
+        <meta name="theme-color" content="#ffffff">
+
+        <style>
+         .green {
+             background-color: #86ff4f;
+             border-color: #86ff4f;
+             color: #373438;
+         }
+         .yellow {
+             background-color: #ffff4f;
+             border-color: #ffff4f;
+             color: #373438;
+         }
+         .orange {
+             background-color: #f48709;
+             border-color: #f48709;
+         }
+         .purple {
+             background-color: #dd09f4;
+             border-color: #dd09f4;
+         }
+         .black {
+             background-color: #373438;
+             border-color: #373438;
+         }
+         .pink {
+             background-color: #fc5eff;
+             border-color: #fc5eff;
+             color: #373438;
+         }
+         .cyan {
+             background-color: #43d3ca;
+             border-color: #43d3ca;
+         }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">Cloudhubs</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-toggle="modal" data-target="#CodeModal">Enter Code</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-toggle="modal" data-target="#clearModal">Clear Order</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Payment
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#cashModal">Cash</a>
+                            <a class="dropdown-item" href="#" onclick="app.payed('card');">Card</a>
+                        </div>
+                    </li>
+                    {% if request.user.is_staff %}
+                    <li class="nav-item">
+                        <a id="resetcashpopover" tabindex="0" class="nav-link active dropdown-toggle" role="button" data-toggle="popover" data-placement="bottom"  title="Reset Cash"
+                           style="cursor:pointer;"
+                           data-content="<div class='row'><div class='col-md-12 form-group'><input class='form-control' type='number' value='0' id='resetcashinput' step='0.01'></a></div></div>
+                               <div class='row' style='margin-top:1em;'><div class='col-md-12'><button type='button' class='btn btn-primary' onclick='app.resetCash();'>Reset</button></div></div>">
+                            Reset Cash
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'view_stock' %}" class="nav-link active" title="View Stock" style="cursor:pointer;">View Stock</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'admin:index' %}">Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'logout' %}">Log Out</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div id="cashresetdiv" class="alert alert-success alert-dismissable" style="display:none;" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            Successfully reset the cash amount to {{ currency }}<span id="cashresetamount"></span>.
+        </div>
+        <div id="app">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            {% if list %}
+                            {% for product in list %}
+                            <div class="col-sm-6 col-md-4" style="padding-top: 5px; padding-bottom: 5px;">
+                                <a role="button" class="btn btn-primary btn-block {{ product.colour }}"
+                                   href="#"
+                                   onclick="app.addProduct({{ product.id }});">
+                                    {{ product.name }}<br>{{ currency }}{{ product.price }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in items">
+                                    <td>[[ item.name ]]</td>
+                                    <td>[[ item.price ]]</td>
+                                    <td><button class="btn btn-danger" @click="removeProduct(item.id)">X</button></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total</th>
+                                    <td>[[ order.total_price ]]</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal" id="CodeModal" tabindex="-1" role="dialog" aria-labelledby="codeModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <form action="javascript:void(0);">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Enter by Code</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <input id="codeInput" class="form-control" name="code" type="text" value="" autofocus="autofocus" />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary" @click="scanCode">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal" id="clearModal" tabindex="-1" role="dialog" aria-labelledby="clearModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Are you sure?</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>
+                                Are you sure you want to clear this order?
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" data-dismiss="modal" v-on:click="reset">Clear it</button>
+                            <button class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Change modal -->
+            <div class="modal" id="cashModal" tabindex="-1" role="dialog" aria-labelledby="cashModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalCenterTitle">Change</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="">
+                                <div class="form-group">
+                                    <label for="topay">To pay</label>
+                                    <input id="topay" class="form-control" name="" type="number" value="" step="0.01" disabled/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cashgot">Cash received</label>
+                                    <input v-model="cashgot" class="form-control" type="number" id="cashgot" step="0.01" autofocus />
+                                </div>
+                                <div class="form-group">
+                                    <label for="change">Change</label>
+                                    <input id="change" type="number" class="form-control" :value="cashgot - order.total_price" disabled/>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" @click="payed('cash');" data-dismiss="modal" :disabled="cashgot <= order.total_price">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+         $(document).ready(function() {
+             $('#resetcashpopover').popover({html:true});
+         });
+
+         $('#CodeModal').on('shown.bs.modal', function (e) {
+             $('#codeInput').focus();
+         })
+
+         var app = new Vue({
+             delimiters: ['[[', ']]'],
+             el: '#app',
+             data: {
+                 order: {},
+                 items: [],
+                 cashgot: 0.0
+             },
+             methods: {
+                 update_order: function() {
+                     fetch("{% url 'api_current_order' %}")
+                         .then(res => res.json())
+                         .then((out) => {
+                             this.order = out;
+                         });
+                 },
+                 update_items: function() {
+                     fetch("{% url 'api_current_order_items' %}")
+                         .then(res => res.json())
+                         .then((out) => {
+                             this.items = out;
+                         });
+                 },
+                 cashmodal: function() {
+                     $('#cashgot').focus();
+                     console.log(this.order.total_price);
+                     document.getElementById('topay').value = this.order.total_price;
+                 },
+                 removeProduct: function(product_id) {
+                     fetch("/pos/api/orders/current/items/" + encodeURIComponent(product_id) + "/", {method: 'DELETE'})
+                         .then(response => {
+                             if (response.status == 200) {
+                                 response.json().then(json => {
+                                     this.items = json;
+                                 });
+                                 this.update_order();
+                             } else {
+                                 window.alert("Can't remove product");
+                                 console.log(response);
+                             }
+                         });
+                 },
+                 addProduct: function(product_id) {
+                     fetch("/pos/api/orders/current/items/" + encodeURIComponent(product_id) + "/", {method: 'PUT'})
+                         .then(response => {
+                             if (response.status == 404) {
+                                 window.alert("Product not found");
+                             } else if (response.status != 200) {
+                                 console.log(response);
+                                 window.alert(response.json().message);
+                             } else {
+                                 this.update_order();
+                                 // this must be a promise
+                                 response.json().then(json => {
+                                     this.items = json;
+                                 });
+                             }
+                         });
+                 },
+                 resetCash: function() {
+                     var value = document.getElementById('resetcashinput').value;
+                     fetch("{% url 'cash' '' %}" + encodeURIComponent(value))
+                         .then(response => {
+                             if (response.status != 200) {
+                                 window.alert("Can't reset cash");
+                                 console.log(response);
+                             } else {
+                                 $('#cashresetamount').text(encodeURIComponent(value));
+                                 $('#cashresetdiv').show()
+                                 $('#resetcashpopover').popover('hide');
+                             }
+                         });
+                 },
+                 payed: function(method) {
+                     if (confirm("Do you want to print the addition?")) {
+                         console.log(this.order.id);
+                         window.open("{% url 'print_order' '0' %}" + this.order.id, "_blank").focus();
+                     }
+
+                     if (method == "cash") {
+                         fetch("{% url 'api_cash_payment' %}").then(response => {
+                             if (response.status != 200) {
+                                 window.alert("Couldn't pay");
+                                 console.log(response);
+                             } else {
+                                 response.json().then(json => {
+                                     window.alert("Added " + json.added + " to the register");
+                                 });
+                                 this.update_order();
+                                 this.update_items();
+                             }
+                         });
+                     } else if (method == "card") {
+                         if (!confirm('Are you sure?'))
+                             return;
+                         fetch("{% url 'api_card_payment' %}").then(response => {
+                             if (response.status != 200) {
+                                 window.alert("Couldn't pay");
+                                 console.log(response);
+                             } else {
+                                 window.alert("Successfully paid.");
+                                 this.update_order();
+                                 this.update_items();
+                             }
+                         });
+                     }
+                     console.log("Person payed");
+                 },
+                 scanCode: function() {
+                     this.addProduct(document.getElementById('codeInput').value);
+                     document.getElementById('codeInput').value = "";
+                     document.getElementById('codeInput').focus();
+                 },
+                 reset: function() {
+                     fetch("{% url 'api_current_order' %}", {method: 'delete'})
+                         .then(response => {
+                             if (response.status == 200) {
+                                 window.alert("Order cleared");
+                             } else {
+                                 window.alert("Can't clear order");
+                                 console.log(response);
+                             }
+                         });
+                     this.update_order();
+                     this.update_items();
+                 }
+             },
+             created() {
+                 this.update_order();
+                 this.update_items();
+             }
+         });
+
+         $('#cashModal').on('shown.bs.modal', function() {
+             app.cashmodal();
+         });
+
+         $(document).ready(function() {
+             // This shallst load /addition in its div
+             $('#resetcashpopover').popover({html:true});
+         });
+
+         $('#CodeModal').on('shown.bs.modal', function (e) {
+             $('#codeInput').focus();
+         })
+        </script>
+    </body>
+</html>
