@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from .models import Order, Cash, Order_Item, Setting
+import requests
 
 
 def get_currency():
@@ -98,3 +99,11 @@ def product_list_from_order(order):
         product_list.append(order_item.product)
 
     return product_list
+
+
+def test_request():
+    r = requests.get('https://api.github.com/events')
+
+
+def test_post():
+    r = requests.post('https://httpbin.org/post', data={'key': 'value'})
