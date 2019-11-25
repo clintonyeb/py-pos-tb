@@ -101,9 +101,22 @@ def product_list_from_order(order):
     return product_list
 
 
+class Person:
+    def __init__(self):
+        self.name = ''
+        self.age = -1
+
+
+def test_request_with_id():
+    r = requests.get('https://api.github.com/events/1')
+
+
 def test_request():
     r = requests.get('https://api.github.com/events')
 
 
 def test_post():
-    r = requests.post('https://httpbin.org/post', data={'key': 'value'})
+    person = Person()
+    person.name = 'Foo'
+    person.age = 24
+    r = requests.post('https://httpbin.org/post', person)
